@@ -1,3 +1,4 @@
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel, QWidget, \
     QGridLayout, QLineEdit, QPushButton, QComboBox, QTableWidget, \
     QTableWidgetItem, QDialog, QVBoxLayout
@@ -11,16 +12,23 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Student Management Portal")
         file_menu = self.menuBar().addMenu("&File")
         help_menu = self.menuBar().addMenu("&Help")
+        edit_menu = self.menuBar().addMenu("&Edit")
 
         #add menu item
         add_student = QAction("Add Student", self)
         #when add_student chosen
         add_student.triggered.connect(self.insert)
         about = QAction("About", self)
+        #??
+        about.setMenuRole(QAction.MenuRole.NoRole)
+        search_student = QAction("Search for Student", self)
+        search_student.triggered.connect(self.search)
+
         file_menu.addAction(add_student)
         help_menu.addAction(about)
-        # ??
-        about.setMenuRole(QAction.MenuRole.NoRole)
+        edit_menu.addAction(search_student)
+
+
 
         #add student table to main window. add 'self' to be able to connect to other
         #functions in class
@@ -49,6 +57,10 @@ class MainWindow(QMainWindow):
         dialog = InsertDialog()
         dialog.exec()
 
+    def search(self):
+        #call searchdialog class
+        dialog = SearchDialog()
+        dialog.exec()
 
 class InsertDialog(QDialog):
     def __init__(self):
@@ -96,7 +108,37 @@ class InsertDialog(QDialog):
         mainwindow.load_data()
         
 
-        
+class SearchDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Search Student Database")
+        #gd practice for dialog window
+        self.setFixedWidth(300)
+        self.setFixedHeight(300)
+
+        layout = QVBoxLayout()
+
+        self.search_student = QLineEdit()
+        self.search_student.setPlaceholderText("search by name")
+        layout.addWidget(self.search_student)
+
+        submit = QPushButton("Search")
+        submit.clicked.connect(self.find_student)
+        layout.addWidget(submit)
+
+        self.setLayout(layout)
+    def find_student(self):
+        #erase any highlighted items
+        mainwindow.table.setCurrentItem(None)
+        #no need to call up database. search in table itself. alternate code with SQL
+        #query in test.py
+
+        hits = mainwindow.table.findItems(self.search_student.text(), Qt.MatchFlag.MatchContains)
+        if hits:
+            for hit in hits:
+                hit.setSelected(True)
+
+
 app = QApplication(sys.argv)
 mainwindow = MainWindow()
 mainwindow.show()
