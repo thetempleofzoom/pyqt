@@ -1,7 +1,8 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel, QWidget, \
     QGridLayout, QLineEdit, QPushButton, QComboBox, QTableWidget, \
-    QTableWidgetItem, QDialog, QVBoxLayout, QToolBar, QStatusBar
+    QTableWidgetItem, QDialog, QVBoxLayout, QToolBar, QStatusBar, \
+    QMessageBox
 from PyQt6.QtGui import QAction, QIcon
 import sys
 import sqlite3
@@ -234,13 +235,24 @@ class EditDialog(QDialog):
         mainwindow.load_data()
 
 
-class DeleteDialog(QDialog):
+#this class is a messagebox unlike the others which are dialogs
+class DeleteDialog(QMessageBox):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Delete Student Record")
-        #gd practice for dialog window
-        self.setFixedWidth(300)
-        self.setFixedHeight(300)
+
+        index = mainwindow.table.currentRow()
+        id = mainwindow.table.item(index, 0).text()
+        tbd = mainwindow.table.item(index, 1).text()
+
+        reply = self.question(self, 'Delete Student Record', f"Delete {tbd}'s record?")
+                              #self.StandardButton.Ok | self.StandardButton.Cancel
+        if reply == self.StandardButton.Yes:
+            self.delete_record
+        else:
+            self.close()
+
+    def delete_record(self):
+        pass
 
 
 app = QApplication(sys.argv)

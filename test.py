@@ -1,24 +1,32 @@
 import sqlite3
+import sys
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, \
+    QGridLayout, QLineEdit, QPushButton, QComboBox, QTableWidget, \
+    QTableWidgetItem, QDialog, QVBoxLayout, QToolBar, QStatusBar, \
+    QMessageBox
 
-studname = 'martin'
-findstudent = '%'+studname+'%'
-connection = sqlite3.connect("database.db")
-cursor = connection.cursor()
-count = cursor.execute("SELECT COUNT(id) FROM students")
-print(count.fetchall()[0][0])
-result = cursor.execute("SELECT id FROM students WHERE name LIKE ?", (findstudent,))
-        # for index, row_data in enumerate(result):
-        #     self.table.insertRow(index)
-        #     for column, data in enumerate(row_data):
-        #         self.table.setItem(index, column, QTableWidgetItem(str(data)))
+class DeleteDialog(QMessageBox):
+    def __init__(self):
+        super().__init__()
+        #self.setWindowTitle("Delete Student Record")
 
-namelist = result.fetchall()
-print(namelist)
+        #index = mainwindow.table.currentRow()
+        #id = mainwindow.table.item(index, 0).text()
+        #tbd = mainwindow.table.item(index, 1).text()
+        tbd = 'aston martin'
+        reply = self.question(self, 'delete student record', f"Delete {tbd}'s record?",
+                      self.StandardButton.Ok | self.StandardButton.Cancel)
+        if reply == self.StandardButton.Ok:
+            print('deleted')
+        else:
+            self.close()
 
-#if namelist:
-#    hits = mainwindow.table.findItems(self.search_student.text(), Qt.MatchFlag.MatchContains)
-#    for hit in hits:
-#        hit.setSelected(True)
+        #self.setText(f"Delete {tbd}'s record?")
+        #self.setStandardButtons(self.StandardButton.Ok | self.StandardButton.Cancel)
 
-cursor.close()
-connection.close()
+
+app = QApplication(sys.argv)
+msg = DeleteDialog()
+msg.exec()
+sys.exit(app.exec())
+
