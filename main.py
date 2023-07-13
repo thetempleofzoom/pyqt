@@ -1,8 +1,8 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMainWindow, QApplication, QLabel, QWidget, \
     QGridLayout, QLineEdit, QPushButton, QComboBox, QTableWidget, \
-    QTableWidgetItem, QDialog, QVBoxLayout
-from PyQt6.QtGui import QAction
+    QTableWidgetItem, QDialog, QVBoxLayout, QToolBar, QStatusBar
+from PyQt6.QtGui import QAction, QIcon
 import sys
 import sqlite3
 
@@ -10,26 +10,34 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Student Management Portal")
+        self.setMinimumSize(600,400)
         file_menu = self.menuBar().addMenu("&File")
         help_menu = self.menuBar().addMenu("&Help")
         edit_menu = self.menuBar().addMenu("&Edit")
 
         #add menu item
-        add_student = QAction("Add Student", self)
+        add_student = QAction(QIcon("icons/add.png"), "Add Student", self)
         #when add_student chosen
         add_student.triggered.connect(self.insert)
         about = QAction("About", self)
         #??
         about.setMenuRole(QAction.MenuRole.NoRole)
-        search_student = QAction("Search for Student", self)
+        search_student = QAction(QIcon("icons/search.png"), "Search for Student", self)
         search_student.triggered.connect(self.search)
 
         file_menu.addAction(add_student)
         help_menu.addAction(about)
         edit_menu.addAction(search_student)
 
+        #add toolbar and elements
+        toolbar = QToolBar()
+        #toolbar.setMovable(True)
+        self.addToolBar(toolbar)
+        toolbar.addAction(add_student)
+        toolbar.addAction(search_student)
 
 
+        
         #add student table to main window. add 'self' to be able to connect to other
         #functions in class
         self.table = QTableWidget()
@@ -37,6 +45,13 @@ class MainWindow(QMainWindow):
         self.table.setHorizontalHeaderLabels(("ID", "Name", "Course", "Mobile" ))
         #remove column numbers
         self.table.verticalHeader().setVisible(False)
+
+        # add status bar and elements. n/b adding 'self' to statusbar variable
+        # allows it to be called in the edit student function
+        self.statusbar = QStatusBar()
+        self.setStatusBar(self.statusbar)
+        # add buttons to statusbar when cell clicked
+        self.table.cellClicked.connect(self.add_buttons)
 
         #specify central widget for window
         self.setCentralWidget(self.table)
@@ -61,6 +76,33 @@ class MainWindow(QMainWindow):
         #call searchdialog class
         dialog = SearchDialog()
         dialog.exec()
+
+    def edit(self):
+        dialog = EditDialog()
+        dialog.exec()
+
+    def delete(self):
+        dialog = DeleteDialog()
+        dialog.exec()
+    
+    def add_buttons(self):
+        edit = QPushButton("Edit Record")
+        edit.clicked.connect(self.edit)
+
+        delete = QPushButton("Delete Record")
+        delete.clicked.connect(self.delete)
+
+        # buttons are not removed once a cell is clicked. therefore remove all buttons
+        # everytime cell is clicked
+        children = self.statusbar.findChildren(QPushButton)
+        if children:
+            for child in children:
+                self.statusbar.removeWidget(child)
+
+        # now that old buttons are removed, we can safely add new ones
+        self.statusbar.addWidget(edit)
+        self.statusbar.addWidget(delete)
+
 
 class InsertDialog(QDialog):
     def __init__(self):
@@ -102,10 +144,13 @@ class InsertDialog(QDialog):
         cursor.execute("INSERT INTO students (name, course, mobile) VALUES (?,?,?)",
                        (name, course, mobile))
         connection.commit()
+        count = cursor.execute("SELECT COUNT(id) FROM students")
+        count = count.fetchall()[0][0]
         cursor.close()
         connection.close()
         #refresh table
         mainwindow.load_data()
+        print(f'{count} students in database')
         
 
 class SearchDialog(QDialog):
@@ -137,6 +182,24 @@ class SearchDialog(QDialog):
         if hits:
             for hit in hits:
                 hit.setSelected(True)
+
+
+class EditDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Edit Student Record")
+        #gd practice for dialog window
+        self.setFixedWidth(300)
+        self.setFixedHeight(300)
+
+
+class DeleteDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Delete Student Record")
+        #gd practice for dialog window
+        self.setFixedWidth(300)
+        self.setFixedHeight(300)
 
 
 app = QApplication(sys.argv)
