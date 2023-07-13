@@ -187,10 +187,51 @@ class SearchDialog(QDialog):
 class EditDialog(QDialog):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Edit Student Record")
+        self.setWindowTitle("Update Student Data")
         #gd practice for dialog window
         self.setFixedWidth(300)
         self.setFixedHeight(300)
+
+        layout = QVBoxLayout()
+
+        index = mainwindow.table.currentRow()
+        self.id = mainwindow.table.item(index, 0).text()
+        student_selected = mainwindow.table.item(index, 1).text()
+        subject = mainwindow.table.item(index, 2).text()
+        mobile_selected = mainwindow.table.item(index, 3).text()
+        self.student_name = QLineEdit(student_selected)
+        self.student_name.setPlaceholderText("name")
+        layout.addWidget(self.student_name)
+
+        self.student_class = QComboBox()
+        classes = ["Biology", "Math", "Literature", "English", "Physics"]
+        if subject not in classes:
+            classes.append(subject)
+        self.student_class.addItems(classes)
+        self.student_class.setCurrentText(subject)
+        layout.addWidget(self.student_class)
+
+        self.student_mobile = QLineEdit(mobile_selected)
+        self.student_mobile.setPlaceholderText("mobile")
+        layout.addWidget(self.student_mobile)
+
+        submit = QPushButton("Update")
+        submit.clicked.connect(self.edit_student)
+        layout.addWidget(submit)
+
+        self.setLayout(layout)
+
+    def edit_student(self):
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        cursor.execute("UPDATE students SET name = ?, course = ?, mobile = ? WHERE id = ?",
+                       (self.student_name.text(), self.student_class.currentText(), self.student_mobile.text(),
+                        self.id))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        # refresh table
+        mainwindow.load_data()
 
 
 class DeleteDialog(QDialog):
