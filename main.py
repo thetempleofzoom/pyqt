@@ -241,18 +241,27 @@ class DeleteDialog(QMessageBox):
         super().__init__()
 
         index = mainwindow.table.currentRow()
-        id = mainwindow.table.item(index, 0).text()
+        self.id = mainwindow.table.item(index, 0).text()
         tbd = mainwindow.table.item(index, 1).text()
 
         reply = self.question(self, 'Delete Student Record', f"Delete {tbd}'s record?")
-                              #self.StandardButton.Ok | self.StandardButton.Cancel
+                              #self.StandardButton.Ok | self.StandardButton.Cancel)
+
         if reply == self.StandardButton.Yes:
-            self.delete_record
+            self.buttonClicked.connect(self.delete_record)
         else:
             self.close()
 
     def delete_record(self):
-        pass
+        print('delete started')
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM students WHERE id = ?", (int(self.id), ))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        # refresh table
+        mainwindow.load_data()
 
 
 app = QApplication(sys.argv)
